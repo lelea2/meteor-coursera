@@ -3,12 +3,23 @@
 </head>
 
 <body>
-  <h1>Welcome to Meteor!</h1>
+  <h1>Welcome to TOTORO's world!</h1>
 
-  {{> hello}}
+  {{> images}}
 </body>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
+<template name="images">
+  <div class="row">
+  {{#each images}}
+    <div class="col-xs-12 col-md-3">
+      <div class="thumbnail">
+        <img class="js-image" src="{{img_src}}" alt="{{img_alt}}" />
+      </div>
+      <div class="caption">
+        <h3>Totoro</h3>
+        <p>Totoro rocks!!!</p>
+      </div>
+    </div>
+  {{/each}}
+  </div>
 </template>
