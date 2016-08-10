@@ -2,41 +2,74 @@ Images = new Mongo.Collection('images');
 console.log(Images.find().count());
 
 if (Meteor.isClient) {
-  var image_data = [{
-    img_src: 'totoro_icon_1.jpg',
-    img_alt: 'totoro icon 1'
-  }, {
-    img_src: 'totoro_icon_2.jpg',
-    img_alt: 'totoro icon 2'
-  }, {
-    img_src: 'totoro_icon_3.jpg',
-    img_alt: 'totoro icon 3'
-  }, {
-    img_src: 'totoro_icon_4.jpg',
-    img_alt: 'totoro icon 4'
-  }, {
-    img_src: 'totoro_icon_5.png',
-    img_alt: 'totoro icon 5'
-  }, {
-    img_src: 'totoro_icon_6.gif',
-    img_alt: 'totoro icon 6'
-  }, {
-    img_src: 'totoro_icon_7.gif',
-    img_alt: 'totoro icon 7'
-  }, {
-    img_src: 'totoro_icon_8.png',
-    img_alt: 'totoro icon 8'
-  }, {
-    img_src: 'totoro_icon_9.jpg',
-    img_alt: 'totoro icon 9'
-  }];
+  //Modify Meteor account registration, add more field on default form
+  Accounts.ui.config({
+    passwordSignupFields: 'USERNAME_AND_EMAIL'
+  });
+
+  // var image_data = [{
+  //   img_src: 'totoro_icon_1.jpg',
+  //   img_alt: 'totoro icon 1'
+  // }, {
+  //   img_src: 'totoro_icon_2.jpg',
+  //   img_alt: 'totoro icon 2'
+  // }, {
+  //   img_src: 'totoro_icon_3.jpg',
+  //   img_alt: 'totoro icon 3'
+  // }, {
+  //   img_src: 'totoro_icon_4.jpg',
+  //   img_alt: 'totoro icon 4'
+  // }, {
+  //   img_src: 'totoro_icon_5.png',
+  //   img_alt: 'totoro icon 5'
+  // }, {
+  //   img_src: 'totoro_icon_6.gif',
+  //   img_alt: 'totoro icon 6'
+  // }, {
+  //   img_src: 'totoro_icon_7.gif',
+  //   img_alt: 'totoro icon 7'
+  // }, {
+  //   img_src: 'totoro_icon_8.png',
+  //   img_alt: 'totoro icon 8'
+  // }, {
+  //   img_src: 'totoro_icon_9.jpg',
+  //   img_alt: 'totoro icon 9'
+  // }];
 
   //Template.images.helpers({images: image_data}); //return data to template
   // Template.images.helpers({images: Images.find()});
   //
   //Sorting by created date and rating
   Template.images.helpers({
-    images: Images.find({}, {sort: {created_on: -1, rating: -1}})
+    images: function() {
+      if (!!Session.get('userFilter')) {
+        return Images.find({createdBy: Session.get('userFilter')}, {sort: {created_on: -1, rating: -1}});
+      } else {
+        return Images.find({}, {sort: {created_on: -1, rating: -1}});
+      }
+    },
+    getUser: function(user_id) {
+      console.log(user_id);
+      var user = Meteor.users.findOne({_id: user_id});
+      if (user) {
+        return user.username;
+      } else {
+        return 'anon';
+      }
+    }
+  });
+
+  Template.body.helpers({
+    username: function() {
+      if (Meteor.user()) {
+        // console.log(Meteor.user().emails[0].address);
+        // return 'Khanh';
+        //return Meteor.user().emails[0].address;
+        return Meteor.user().username;
+      } else {
+        return 'Anonymous';
+      }
+    }
   });
 
   //Listen to interactivity
@@ -62,6 +95,16 @@ if (Meteor.isClient) {
     },
     'click .js-add-image': function(event) {
       $('#image_add_form').modal('show');
+    },
+
+    'click .js-set-user-filter': function(event) {
+      console.log(this.createdBy);
+      console.log('Testing');
+      Session.set('userFilter', this.createdBy);
+    },
+
+    'click .js-unset-user-filter': function(event) {
+      Session.set('userFilter', undefined);
     }
   });
 
@@ -75,7 +118,8 @@ if (Meteor.isClient) {
       Images.insert({
         img_src: img_src,
         img_alt: img_alt,
-        created_on: new Date()
+        created_on: new Date(),
+        createdBy: Meteor.userId()
       });
       return false;
     }
