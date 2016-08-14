@@ -2,6 +2,22 @@ Images = new Mongo.Collection('images');
 console.log(Images.find().count());
 
 if (Meteor.isClient) {
+  Session.set('imageLimit', 8); //Number of maximum number of image loaded
+
+  lastScroll = 0;
+  $(window).scroll(function(event) {
+    //console.log(new Date());
+    //test if we are near the bottom of the window
+    if ($(window).scrollTop() + $(window).height() > $(document).height() - 10) {
+      var scrollTop = $(this).scrollTop();
+      if (lastScroll < scrollTop) { //check if go down
+        console.log('going down');
+        Session.set('imageLimit', Session.get('imageLimit') + 4);
+      }
+      lastScroll = scrollTop;
+    }
+  });
+
   //Modify Meteor account registration, add more field on default form
   Accounts.ui.config({
     passwordSignupFields: 'USERNAME_AND_EMAIL'
@@ -40,21 +56,38 @@ if (Meteor.isClient) {
   // Template.images.helpers({images: Images.find()});
   //
   //Sorting by created date and rating
+  //
+
   Template.images.helpers({
     images: function() {
-      if (!!Session.get('userFilter')) {
-        return Images.find({createdBy: Session.get('userFilter')}, {sort: {created_on: -1, rating: -1}});
+      if (Session.get('userFilter')) {
+        return Images.find({createdBy: Session.get('userFilter')}, {sort: {created_on: -1, rating: -1}, limit: Session.get('imageLimit')});
       } else {
-        return Images.find({}, {sort: {created_on: -1, rating: -1}});
+        return Images.find({}, {sort: {created_on: -1, rating: -1}, limit: Session.get('imageLimit')});
       }
     },
     getUser: function(user_id) {
-      console.log(user_id);
+      // console.log(user_id);
       var user = Meteor.users.findOne({_id: user_id});
       if (user) {
         return user.username;
       } else {
         return 'anon';
+      }
+    },
+    filtering_images: function() {
+      if (!!Session.get('userFilter')) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+    getFilterUser: function() {
+      if (Session.get('userFilter')) {
+        var user = Meteor.users.findOne({_id: Session.get('userFilter')});
+        return user ? user.username : false;
+      } else {
+        return false;
       }
     }
   });
@@ -75,21 +108,20 @@ if (Meteor.isClient) {
   //Listen to interactivity
   Template.images.events({
     'click .js-image': function(event) {
-      $(event.target).css('width', '50px');
+      $(event.target).css('width', '50px'); //re-size image to thumbnail
     },
     'click .js-del-image': function(event) {
       var image_id = this._id; //mongo id
-      console.log(image_id);
+      // console.log(image_id);
       $('#' + image_id).hide('slow', function() { //animate image hiding
         Images.remove({'_id': image_id}); //mongo filter
       });
     },
     'click .js-rate-image': function(event) {
-      // console.log('You clicked a star');
       var rating = $(event.currentTarget).data('userrating');
       console.log(rating);
       var image_id = this.id;
-      console.log(image_id);
+      // console.log(image_id);
       Images.update({_id: image_id},
                     {$set: {rating: rating}});
     },
@@ -98,8 +130,7 @@ if (Meteor.isClient) {
     },
 
     'click .js-set-user-filter': function(event) {
-      console.log(this.createdBy);
-      console.log('Testing');
+      console.log('CreatedBy: ' + this.createdBy);
       Session.set('userFilter', this.createdBy);
     },
 
@@ -114,13 +145,15 @@ if (Meteor.isClient) {
       event.preventDefault();
       var img_src = event.target.img_src.value;
       var img_alt = event.target.img_alt.value;
-      console.log('src: ' + img_src + '; alt: ' + img_alt);
-      Images.insert({
-        img_src: img_src,
-        img_alt: img_alt,
-        created_on: new Date(),
-        createdBy: Meteor.userId()
-      });
+      // console.log('src: ' + img_src + '; alt: ' + img_alt);
+      if (Meteor.user()) {
+        Images.insert({
+          img_src: img_src,
+          img_alt: img_alt,
+          created_on: new Date(),
+          createdBy: Meteor.user()._id //Or Meteor.userId
+        });
+      }
       return false;
     }
 
