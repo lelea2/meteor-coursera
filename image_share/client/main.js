@@ -1,3 +1,35 @@
+////routing
+///
+
+//Application main container on layout placeholder
+Router.configure({
+  layoutTemplate: 'ApplicationLayout'
+});
+
+Router.route('/', function() {
+  this.render('welcome', { //render specific template to certain section of the site
+    to: 'main'
+  });
+});
+
+Router.route('/images', function() {
+  this.render('navbar', {
+    to: 'navbar'
+  });
+  this.render('images', {
+    to: 'main'
+  });
+});
+
+Router.route('/image/:_id', function() {
+  this.render('image', {
+    to: 'main',
+    data: function() {
+      return Images.findOne({_id: this.params._id});
+    }
+  });
+});
+
 Session.set('imageLimit', 8); //Number of maximum number of image loaded
 
 lastScroll = 0;
@@ -14,6 +46,7 @@ $(window).scroll(function(event) {
   }
 });
 
+//Account config
 //Modify Meteor account registration, add more field on default form
 Accounts.ui.config({
   passwordSignupFields: 'USERNAME_AND_EMAIL'
