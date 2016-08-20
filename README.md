@@ -82,3 +82,6 @@ Meteor.users.find()
 Meteor.user().emails[0].address
 Meteor.user().username
 ```
+
+##### How to organize your code in meteor
+* Client vs. server code
