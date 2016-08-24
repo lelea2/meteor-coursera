@@ -27,6 +27,12 @@ meteor add twbs:bootstrap //adding bootrap to meteor package
 
 ```
 
+##### Meteor authentication
+
+```
+meteor add accounts-ui accounts-password
+```
+
 ##### Meteor distributed data model
 * Create cluster of local data (connected to central data) ==> reactive programming
 * Local data === # of web client + 1 master central data
@@ -85,3 +91,23 @@ Meteor.user().username
 
 ##### How to organize your code in meteor
 * Client vs. server code
+* Folder
+  * client
+  * server
+  * shared
+  * lib (JS in lib folder run before other code, JS in lib folder can run on both client and server, so we need to check server/client specifically if required)
+
+##### Security
+https://docs.meteor.com/api/collections.html#Mongo-Collection-allow
+
+```
+# Remove package
+khanhs-mbp-2:image_share kdao$ meteor remove insecure //access defined for database insert
+```
+
+##### Routing with iron:router
+https://github.com/iron-meteor/iron-router
+
+
+
+* Create middleware in lib to run in server load to check for security
